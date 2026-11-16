@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: 2026 fyv.ai Ltd.
+SPDX-License-Identifier: Apache-2.0
+-->
+
 # casl-footer-check
 
 A small checklist tool for commercial email sent from or to Canada.
@@ -34,3 +39,11 @@ python -m unittest -v
 ```
 
 Python 3.9+, standard library only. Apache-2.0, see `LICENSE` and `NOTICE`.
+
+## Licence
+
+Copyright 2026 fyv.ai Ltd. Licensed under the [Apache License 2.0](LICENSE). Every file states its own licence in an SPDX header or in `REUSE.toml`, following the [REUSE](https://reuse.software/) specification.
+
+**Our promise:** code released here under Apache-2.0 will not be moved to a more restrictive licence.
+
+This repository is read-only: see [CONTRIBUTING.md](CONTRIBUTING.md). Report security issues privately as described in [SECURITY.md](SECURITY.md). The fyv name is covered by [TRADEMARKS.md](TRADEMARKS.md).

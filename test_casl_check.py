@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2026 fyv.ai Ltd.
+# SPDX-License-Identifier: Apache-2.0
 import os
 import tempfile
 import unittest

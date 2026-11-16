@@ -1,0 +1,46 @@
+# SPDX-FileCopyrightText: 2026 fyv.ai Ltd.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Read-only repository (policy P6, ruling OS-6): close pull requests from anyone
+# who is not a repository owner, member or collaborator, with a polite note.
+# Safe use of pull_request_target: this job never checks out or runs PR code.
+# The action is pinned to a full commit SHA (looked up 17 Nov 2026).
+
+name: close-outside-prs
+
+on:
+  pull_request_target:
+    types: [opened, reopened]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  close:
+    if: >-
+      !contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'),
+      github.event.pull_request.author_association)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+              body: [
+                "Thank you for taking the time to send this.",
+                "This repository is published read-only and does not accept outside pull requests,",
+                "so we are closing it automatically. You are welcome to keep your change in a fork",
+                "under the Apache License 2.0 (please rename the fork; see TRADEMARKS.md).",
+                "If this concerns a security issue, please report it privately as described in SECURITY.md."
+              ].join(" ")
+            });
+            await github.rest.pulls.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.number,
+              state: "closed"
+            });

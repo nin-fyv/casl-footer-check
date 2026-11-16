@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2026 fyv.ai Ltd.
+# SPDX-License-Identifier: Apache-2.0
 """casl-footer-check: check a commercial email draft for the identification and unsubscribe
 parts Canada's anti-spam law (CASL) asks for, and check recipients against a suppression list.
 

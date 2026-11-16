@@ -1,0 +1,62 @@
+# SPDX-FileCopyrightText: 2026 fyv.ai Ltd.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Signed release (policy P4, P10). Runs on a pushed version tag.
+# Produces: source archive, SPDX SBOM, SHA-256 checksums, and Sigstore-backed
+# GitHub attestations for provenance and the SBOM.
+# Actions are pinned to full commit SHAs (looked up 17 Nov 2026).
+
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write        # create the GitHub release
+  id-token: write        # Sigstore keyless signing
+  attestations: write    # store the attestations
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - name: Licence check (reuse lint)
+        uses: fsfe/reuse-action@bb774aa972c2a89ff34781233d275075cbddf542 # v5.0.0
+
+      - name: Build source archive
+        run: |
+          NAME="${GITHUB_REPOSITORY#*/}-${GITHUB_REF_NAME}"
+          git archive --format=tar.gz --prefix="${NAME}/" -o "${NAME}.tar.gz" "${GITHUB_REF_NAME}"
+          echo "ARCHIVE=${NAME}.tar.gz" >> "$GITHUB_ENV"
+
+      - name: Generate SBOM (SPDX JSON)
+        uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
+        with:
+          path: .
+          format: spdx-json
+          output-file: sbom.spdx.json
+
+      - name: Checksums
+        run: sha256sum "$ARCHIVE" sbom.spdx.json > SHA256SUMS
+
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be # v2.4.0
+        with:
+          subject-path: ${{ env.ARCHIVE }}
+
+      - name: Attest SBOM
+        uses: actions/attest-sbom@bd218ad0dbcb3e146bd073d1d9c6d78e08aa8a0b # v2.4.0
+        with:
+          subject-path: ${{ env.ARCHIVE }}
+          sbom-path: sbom.spdx.json
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" "$ARCHIVE" sbom.spdx.json SHA256SUMS \
+            --title "$GITHUB_REF_NAME" --verify-tag \
+            --notes "Verify with: gh attestation verify $ARCHIVE --repo $GITHUB_REPOSITORY"
